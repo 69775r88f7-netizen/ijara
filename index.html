@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="uz">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f4e6b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ijara daftari">
+<meta name="robots" content="noindex, nofollow">
+<title>Ijara daftari</title>
+<style>
+:root{
+  --bg:#eef0ec; --card:#ffffff; --ink:#1c2630; --mute:#5d6b78; --line:#d6dbd6;
+  --accent:#1f4e6b; --accent-ink:#ffffff;
+  --out:#b5650a; --out-bg:#fbefdc; --ok:#2b7a57; --ok-bg:#e0f1e8; --danger:#b3261e;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#13181d; --card:#1c242b; --ink:#e8edf1; --mute:#97a5b1; --line:#2d3841;
+    --accent:#7fb6d6; --accent-ink:#0d1a22;
+    --out:#f0b45c; --out-bg:#3a2c12; --ok:#6fd0a0; --ok-bg:#17322a; --danger:#ff8a80;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  font-size:17px; line-height:1.4; padding-bottom:env(safe-area-inset-bottom);
+}
+.wrap{max-width:720px; margin:0 auto; padding:16px 14px 60px}
+h1{font-size:28px; font-weight:800; letter-spacing:-.02em; margin:6px 0 2px}
+.sub{color:var(--mute); margin:0 0 16px; font-size:15px}
+button,input{font:inherit; color:inherit}
+:focus-visible{outline:3px solid var(--accent); outline-offset:2px}
+[hidden]{display:none!important}
+
+.topbar{display:flex; justify-content:space-between; align-items:flex-start; gap:10px}
+.linkbtn{background:none; border:0; color:var(--mute); padding:8px 4px; font-size:15px; cursor:pointer; text-decoration:underline}
+
+.stats{background:var(--accent); color:var(--accent-ink); border-radius:16px; padding:14px; margin-bottom:14px}
+.stats .label{font-size:14px; opacity:.85}
+.stats .total{font-size:32px; font-weight:800; letter-spacing:-.02em; margin:2px 0 0}
+.stats .total small{font-size:16px; font-weight:600; opacity:.85}
+.stats .count{font-size:14px; opacity:.85; margin-top:2px}
+.periods{display:flex; gap:6px; margin-top:12px; flex-wrap:wrap}
+.pchip{
+  border:2px solid color-mix(in srgb, var(--accent-ink) 45%, transparent); background:transparent;
+  color:var(--accent-ink); border-radius:999px; padding:7px 13px; font-size:14px; font-weight:700; cursor:pointer;
+}
+.pchip[aria-pressed="true"]{background:var(--accent-ink); color:var(--accent); border-color:var(--accent-ink)}
+
+.search{
+  width:100%; padding:15px 16px; font-size:18px; border-radius:14px;
+  border:2px solid var(--line); background:var(--card);
+}
+.search:focus{border-color:var(--accent); outline:none}
+
+.chips{display:flex; gap:8px; margin:12px 0; flex-wrap:wrap}
+.chip{
+  border:2px solid var(--line); background:var(--card); border-radius:999px;
+  padding:9px 15px; font-size:15px; font-weight:600; cursor:pointer;
+}
+.chip[aria-pressed="true"]{background:var(--accent); border-color:var(--accent); color:var(--accent-ink)}
+
+.primary{
+  width:100%; background:var(--accent); color:var(--accent-ink); border:0; border-radius:14px;
+  padding:15px; font-size:18px; font-weight:700; cursor:pointer;
+}
+.primary:active{transform:scale(.99)}
+.primary:disabled{opacity:.6}
+.secondary{
+  flex:1; background:none; border:2px solid var(--line); border-radius:14px;
+  font-weight:600; cursor:pointer; padding:13px;
+}
+
+.panel{
+  background:var(--card); border:2px solid var(--line); border-radius:16px;
+  padding:14px; margin:12px 0; display:none;
+}
+.panel.open{display:block}
+.panel label,.dlg label{display:block; font-weight:600; font-size:15px; margin:10px 0 4px}
+.panel input,.dlg input{
+  width:100%; padding:13px 14px; border-radius:12px; border:2px solid var(--line);
+  background:var(--bg); font-size:17px;
+}
+.panel input:focus,.dlg input:focus{border-color:var(--accent); outline:none}
+.row2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+@media (max-width:480px){.row2{grid-template-columns:1fr}}
+.actions{display:flex; gap:10px; margin-top:14px}
+.actions .primary{flex:2}
+
+.result{color:var(--mute); font-size:15px; margin:10px 2px}
+.status{font-size:15px; margin:8px 2px; min-height:20px; color:var(--mute)}
+.status.err{color:var(--danger); font-weight:600}
+
+.list{display:flex; flex-direction:column; gap:10px}
+.rec{
+  background:var(--card); border:1px solid var(--line); border-left:7px solid var(--out);
+  border-radius:14px; padding:13px 12px 11px 14px; display:flex; gap:12px; align-items:flex-start;
+}
+.rec.back{border-left-color:var(--ok)}
+.rec .body{flex:1; min-width:0}
+.rec .name{font-weight:800; font-size:19px; overflow-wrap:anywhere}
+.rec .phone{color:var(--mute); font-size:15px}
+.rec .tool{margin:5px 0 3px; font-size:18px; overflow-wrap:anywhere}
+.rec .note{color:var(--mute); font-size:15px; font-style:italic; overflow-wrap:anywhere}
+.rec .time{font-size:14px; color:var(--mute); margin-top:4px}
+.rec .time b{color:var(--ink); font-weight:600}
+.rec .money{font-size:16px; font-weight:700; color:var(--ok); margin-top:4px}
+.badge{display:inline-block; font-size:13px; font-weight:700; padding:3px 9px; border-radius:8px; margin-top:6px}
+.badge.out{background:var(--out-bg); color:var(--out)}
+.badge.ok{background:var(--ok-bg); color:var(--ok)}
+.check{
+  flex:none; width:46px; height:46px; border-radius:12px; border:3px solid var(--out);
+  background:transparent; cursor:pointer; display:grid; place-items:center; color:transparent;
+}
+.check svg{width:28px; height:28px}
+.check[aria-pressed="true"]{background:var(--ok); border-color:var(--ok); color:#fff}
+.del{background:none; border:0; color:var(--mute); font-size:14px; padding:6px 0 0; cursor:pointer; text-decoration:underline}
+.del.sure{color:var(--danger); font-weight:700}
+.empty{text-align:center; color:var(--mute); padding:36px 10px}
+
+.overlay{position:fixed; inset:0; background:rgba(0,0,0,.5); display:grid; place-items:end center; z-index:10}
+@media (min-width:600px){.overlay{place-items:center}}
+.dlg{
+  background:var(--card); width:100%; max-width:440px; border-radius:20px 20px 0 0;
+  padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+}
+@media (min-width:600px){.dlg{border-radius:20px}}
+.dlg h2{margin:0 0 2px; font-size:21px}
+.dlg .who{color:var(--mute); margin:0 0 6px; font-size:15px}
+.dlg .calc{margin:10px 0 0; font-size:15px; color:var(--mute)}
+.dlg .calc b{color:var(--ink)}
+
+.gate{max-width:380px; margin:12vh auto 0; padding:0 18px; text-align:center}
+.gate input{
+  width:100%; padding:16px; font-size:22px; text-align:center;
+  border-radius:14px; border:2px solid var(--line); background:var(--card); margin:14px 0 12px;
+}
+.gate input:focus{border-color:var(--accent); outline:none}
+.gate .err{color:var(--danger); font-weight:600; min-height:24px; margin-bottom:8px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="gate" class="gate" hidden>
+  <h1>Ijara daftari</h1>
+  <p class="sub">Kirish uchun parolni kiriting</p>
+  <input id="pass" type="password" autocomplete="current-password" aria-label="Parol">
+  <div class="err" id="gateErr"></div>
+  <button class="primary" id="gateBtn">Kirish</button>
+</div>
+
+<div id="app" class="wrap" hidden>
+  <div class="topbar">
+    <div>
+      <h1>Ijara daftari</h1>
+      <p class="sub">Kim, nima, qachon olib ketgan</p>
+    </div>
+    <button class="linkbtn" id="logoutBtn">Chiqish</button>
+  </div>
+
+  <section class="stats" aria-label="Hisobot">
+    <div class="label" id="pLabel">Oxirgi 7 kunda topilgan pul</div>
+    <div class="total"><span id="pTotal">0</span> <small>so'm</small></div>
+    <div class="count" id="pCount"></div>
+    <div class="periods" role="group" aria-label="Davr">
+      <button class="pchip" data-p="7" aria-pressed="true">7 kun</button>
+      <button class="pchip" data-p="15" aria-pressed="false">15 kun</button>
+      <button class="pchip" data-p="30" aria-pressed="false">1 oy</button>
+      <button class="pchip" data-p="365" aria-pressed="false">1 yil</button>
+    </div>
+  </section>
+
+  <input class="search" id="search" type="search" placeholder="Ism, telefon yoki asbob bo'yicha qidirish" aria-label="Qidirish" autocomplete="off">
+
+  <div class="chips" role="group" aria-label="Filtr">
+    <button class="chip" data-f="all" aria-pressed="true">Hammasi</button>
+    <button class="chip" data-f="out" aria-pressed="false">Qaytmagan</button>
+    <button class="chip" data-f="back" aria-pressed="false">Qaytgan</button>
+  </div>
+
+  <button class="primary" id="openForm">Yangi yozuv qo'shish</button>
+
+  <div class="panel" id="panel">
+    <form id="form" autocomplete="off">
+      <label for="fName">Kim olib ketdi</label>
+      <input id="fName" list="names" required placeholder="Masalan: Badalovot aka">
+      <datalist id="names"></datalist>
+
+      <label for="fPhone">Telefon raqami</label>
+      <input id="fPhone" type="tel" inputmode="tel" placeholder="Masalan: 90 123 69 49">
+
+      <label for="fTool">Qaysi asbob</label>
+      <input id="fTool" required placeholder="Masalan: Perforator, 2 ta">
+
+      <div class="row2">
+        <div>
+          <label for="fWhen">Qachon olib ketdi</label>
+          <input id="fWhen" type="datetime-local" required>
+        </div>
+        <div>
+          <label for="fNote">Izoh (shart emas)</label>
+          <input id="fNote" placeholder="Masalan: ertaga qaytaradi">
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="primary" id="saveBtn">Saqlash</button>
+        <button type="button" class="secondary" id="cancelForm">Bekor</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="status" id="status" role="status"></div>
+  <div class="result" id="result"></div>
+  <div class="list" id="list"></div>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="dTitle">
+    <h2 id="dTitle">Asbob qaytdi</h2>
+    <p class="who" id="dWho"></p>
+    <label for="dDays">Necha kun ishlatildi</label>
+    <input id="dDays" type="number" inputmode="numeric" min="1" step="1">
+    <label for="dAmount">Qancha pul olindi (so'm)</label>
+    <input id="dAmount" type="text" inputmode="numeric" placeholder="Masalan: 300 000">
+    <div class="calc" id="dCalc"></div>
+    <div class="actions">
+      <button class="primary" id="dSave">Saqlash</button>
+      <button class="secondary" id="dCancel">Bekor</button>
+    </div>
+    <div style="text-align:center" id="dUndoWrap" hidden>
+      <button class="linkbtn" id="dUndo">Qaytmagan deb belgilash</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, collection, query, orderBy, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAREY-30KgU3vgGaKJZ5QN6BRD2aJFrbgA",
+  authDomain: "arenda-7631f.firebaseapp.com",
+  projectId: "arenda-7631f",
+  storageBucket: "arenda-7631f.firebasestorage.app",
+  messagingSenderId: "859881112241",
+  appId: "1:859881112241:web:6b30e14bc14432d3869890"
+};
+const EMAIL = "hojiakbar@dokon.uz";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const col = collection(db, "records");
+
+const $ = s => document.querySelector(s);
+const MONTHS = ['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentabr','oktabr','noyabr','dekabr'];
+const DAY = 86400000;
+
+let records = [], filter = 'all', query_ = '', period = 7, sureId = null, sureTimer = null, unsub = null, bound = false, dlgId = null;
+
+/* ---------- helpers ---------- */
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2,'0');
+const fmt = ts => { const d = new Date(ts); return d.getDate() + '-' + MONTHS[d.getMonth()] + ', ' + pad(d.getHours()) + ':' + pad(d.getMinutes()); };
+const money = n => String(Math.round(n||0)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+const digitsOf = s => String(s||'').replace(/\D/g,'');
+const nowLocal = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,16); };
+function setStatus(msg, isErr){ const el = $('#status'); el.textContent = msg || ''; el.className = 'status' + (isErr ? ' err' : ''); }
+function dbError(e){
+  const code = (e && e.code) || '';
+  if (code.includes('permission')) return "Ruxsat yo'q. Bazaning qoidalari hali qo'yilmagan bo'lishi mumkin.";
+  if (code.includes('unavailable') || code.includes('network')) return "Internet yo'q yoki sekin. Qayta urinib ko'ring.";
+  if (code.includes('not-found') || code.includes('failed-precondition')) return "Baza hali tayyor emas.";
+  return "Xatolik chiqdi. Qayta urinib ko'ring.";
+}
+
+/* ---------- render ---------- */
+function matches(r, term, digits){
+  if (!term) return true;
+  return (r.name||'').toLowerCase().includes(term) ||
+         (r.tool||'').toLowerCase().includes(term) ||
+         (r.note||'').toLowerCase().includes(term) ||
+         (digits && digitsOf(r.phone).includes(digits));
+}
+function renderStats(){
+  const since = Date.now() - period * DAY;
+  const paid = records.filter(r => r.returned && r.amount > 0 && r.returnedAt >= since);
+  const total = paid.reduce((s, r) => s + r.amount, 0);
+  const names = {7:'Oxirgi 7 kunda', 15:'Oxirgi 15 kunda', 30:'Oxirgi 1 oyda (30 kun)', 365:'Oxirgi 1 yilda'};
+  $('#pLabel').textContent = names[period] + ' topilgan pul';
+  $('#pTotal').textContent = money(total);
+  $('#pCount').textContent = paid.length + ' ta asbob qaytgan va pul olingan';
+  document.querySelectorAll('.pchip').forEach(b => b.setAttribute('aria-pressed', String(+b.dataset.p === period)));
+}
+function render(){
+  const term = query_.trim().toLowerCase(), digits = digitsOf(term);
+  const found = records.filter(r => matches(r, term, digits));
+  const shown = found.filter(r => filter==='out' ? !r.returned : filter==='back' ? r.returned : true);
+
+  document.querySelector('[data-f="out"]').textContent = 'Qaytmagan (' + records.filter(r => !r.returned).length + ')';
+  $('#result').textContent = term
+    ? 'Topildi: ' + found.length + ' ta, shundan qaytmagan: ' + found.filter(r => !r.returned).length + ' ta'
+    : 'Jami yozuv: ' + records.length + ' ta';
+
+  const list = $('#list');
+  if (!shown.length) {
+    list.innerHTML = '<div class="empty">' + (records.length ? 'Hech narsa topilmadi.' : "Hali yozuv yo'q. Yuqoridagi tugma bilan birinchi yozuvni qo'shing.") + '</div>';
+  } else {
+    list.innerHTML = shown.map(r => `
+      <article class="rec ${r.returned ? 'back' : ''}">
+        <div class="body">
+          <div class="name">${esc(r.name)}</div>
+          ${r.phone ? `<div class="phone">${esc(r.phone)}</div>` : ''}
+          <div class="tool">${esc(r.tool)}</div>
+          ${r.note ? `<div class="note">${esc(r.note)}</div>` : ''}
+          <div class="time">Olib ketdi: <b>${fmt(r.takenAt)}</b></div>
+          ${r.returned
+            ? `<span class="badge ok">Qaytardi: ${fmt(r.returnedAt)}</span>
+               <div class="money">${r.days ? esc(r.days) + ' kun, ' : ''}${money(r.amount)} so'm</div>`
+            : `<span class="badge out">Hali qaytmagan</span>`}
+          <div><button class="del ${sureId===r.id ? 'sure' : ''}" data-del="${r.id}">${sureId===r.id ? "Aniq o'chiraymi?" : "O'chirish"}</button></div>
+        </div>
+        <button class="check" data-ret="${r.id}" aria-pressed="${r.returned ? 'true' : 'false'}" aria-label="${r.returned ? "Pul yozuvini ko'rish" : 'Qaytdi deb belgilash'}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg>
+        </button>
+      </article>`).join('');
+  }
+
+  const seen = new Set();
+  $('#names').innerHTML = records.map(r => r.name || '').filter(n => { const k = n.toLowerCase(); if (!k || seen.has(k)) return false; seen.add(k); return true; })
+    .map(n => '<option value="' + esc(n) + '">').join('');
+  renderStats();
+}
+
+/* ---------- dialog (qaytdi + pul) ---------- */
+function openDialog(r){
+  dlgId = r.id;
+  $('#dTitle').textContent = r.returned ? "Pul yozuvi" : "Asbob qaytdi";
+  $('#dWho').textContent = r.name + ' - ' + r.tool;
+  const autoDays = Math.max(1, Math.ceil(((r.returned ? r.returnedAt : Date.now()) - r.takenAt) / DAY));
+  $('#dDays').value = r.days || autoDays;
+  $('#dAmount').value = r.amount ? money(r.amount) : '';
+  $('#dUndoWrap').hidden = !r.returned;
+  updateCalc();
+  $('#overlay').hidden = false;
+  setTimeout(() => $('#dAmount').focus(), 50);
+}
+function closeDialog(){ $('#overlay').hidden = true; dlgId = null; }
+function updateCalc(){
+  const a = +digitsOf($('#dAmount').value), d = +$('#dDays').value;
+  $('#dCalc').innerHTML = (a && d) ? 'Kuniga: <b>' + money(a / d) + " so'm</b>" : '';
+}
+
+/* ---------- app events ---------- */
+function bindApp(){
+  if (bound) return; bound = true;
+
+  $('#search').addEventListener('input', e => { query_ = e.target.value; render(); });
+  document.querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
+    filter = b.dataset.f;
+    document.querySelectorAll('.chip').forEach(x => x.setAttribute('aria-pressed', x===b ? 'true' : 'false'));
+    render();
+  }));
+  document.querySelectorAll('.pchip').forEach(b => b.addEventListener('click', () => { period = +b.dataset.p; renderStats(); }));
+
+  const panel = $('#panel');
+  const openForm = () => { panel.classList.add('open'); $('#fWhen').value = nowLocal(); $('#fName').focus(); panel.scrollIntoView({behavior:'smooth', block:'nearest'}); };
+  const closeForm = () => { panel.classList.remove('open'); $('#form').reset(); };
+  $('#openForm').addEventListener('click', () => panel.classList.contains('open') ? closeForm() : openForm());
+  $('#cancelForm').addEventListener('click', closeForm);
+
+  $('#fName').addEventListener('change', () => {
+    const n = $('#fName').value.trim().toLowerCase();
+    if (!n || $('#fPhone').value.trim()) return;
+    const last = records.filter(r => (r.name||'').toLowerCase()===n && r.phone).sort((a,b)=>b.takenAt-a.takenAt)[0];
+    if (last) $('#fPhone').value = last.phone;
+  });
+
+  $('#form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const rec = {
+      name: $('#fName').value.trim(), phone: $('#fPhone').value.trim(), tool: $('#fTool').value.trim(),
+      note: $('#fNote').value.trim(), takenAt: new Date($('#fWhen').value).getTime() || Date.now(),
+      returned: false, returnedAt: null, days: null, amount: 0
+    };
+    if (!rec.name || !rec.tool) return;
+    $('#saveBtn').disabled = true; setStatus('Saqlanmoqda...');
+    try { await addDoc(col, rec); closeForm(); setStatus(''); }
+    catch(err){ setStatus(dbError(err), true); }
+    $('#saveBtn').disabled = false;
+  });
+
+  $('#list').addEventListener('click', async e => {
+    const ret = e.target.closest('[data-ret]'), del = e.target.closest('[data-del]');
+    if (ret) {
+      const r = records.find(x => x.id === ret.dataset.ret); if (r) openDialog(r);
+    } else if (del) {
+      const id = del.dataset.del;
+      if (sureId === id) {
+        clearTimeout(sureTimer); sureId = null;
+        try { await deleteDoc(doc(db, 'records', id)); } catch(err){ setStatus(dbError(err), true); }
+      } else {
+        sureId = id; render(); clearTimeout(sureTimer);
+        sureTimer = setTimeout(() => { sureId = null; render(); }, 4000);
+      }
+    }
+  });
+
+  $('#dAmount').addEventListener('input', e => { const d = digitsOf(e.target.value); e.target.value = d ? money(+d) : ''; updateCalc(); });
+  $('#dDays').addEventListener('input', updateCalc);
+  $('#dCancel').addEventListener('click', closeDialog);
+  $('#overlay').addEventListener('click', e => { if (e.target.id === 'overlay') closeDialog(); });
+  $('#dSave').addEventListener('click', async () => {
+    const r = records.find(x => x.id === dlgId); if (!r) return closeDialog();
+    const amount = +digitsOf($('#dAmount').value), days = Math.max(1, +$('#dDays').value || 1);
+    const data = r.returned ? { days, amount } : { returned: true, returnedAt: Date.now(), days, amount };
+    $('#dSave').disabled = true;
+    try { await updateDoc(doc(db, 'records', r.id), data); closeDialog(); setStatus(''); }
+    catch(err){ setStatus(dbError(err), true); closeDialog(); }
+    $('#dSave').disabled = false;
+  });
+  $('#dUndo').addEventListener('click', async () => {
+    const id = dlgId; closeDialog();
+    try { await updateDoc(doc(db, 'records', id), { returned: false, returnedAt: null, days: null, amount: 0 }); }
+    catch(err){ setStatus(dbError(err), true); }
+  });
+
+  $('#logoutBtn').addEventListener('click', () => signOut(auth));
+}
+
+function startListening(){
+  if (unsub) unsub();
+  const q = query(col, orderBy('takenAt', 'desc'));
+  unsub = onSnapshot(q, snap => {
+    records = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    setStatus(''); render();
+  }, err => setStatus(dbError(err), true));
+}
+
+/* ---------- login ---------- */
+async function doLogin(){
+  const err = $('#gateErr'), btn = $('#gateBtn'); err.textContent = '';
+  const pw = $('#pass').value;
+  if (!pw) { err.textContent = 'Parolni kiriting.'; return; }
+  btn.disabled = true;
+  try { await signInWithEmailAndPassword(auth, EMAIL, pw); $('#pass').value = ''; }
+  catch(e){
+    const c = e.code || '';
+    err.textContent = (c.includes('invalid') || c.includes('wrong') || c.includes('user-not-found')) ? "Parol noto'g'ri."
+      : c.includes('network') ? "Internetni tekshiring." : c.includes('too-many') ? "Ko'p urinish bo'ldi, birozdan keyin qayta urinib ko'ring."
+      : "Kirib bo'lmadi. Qayta urinib ko'ring.";
+    $('#pass').select();
+  }
+  btn.disabled = false;
+}
+$('#gateBtn').addEventListener('click', doLogin);
+$('#pass').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+onAuthStateChanged(auth, user => {
+  if (user) {
+    $('#gate').hidden = true; $('#app').hidden = false;
+    bindApp(); startListening();
+  } else {
+    if (unsub) { unsub(); unsub = null; }
+    records = []; $('#app').hidden = true; $('#gate').hidden = false; $('#pass').focus();
+  }
+});
+</script>
+</body>
+</html>
